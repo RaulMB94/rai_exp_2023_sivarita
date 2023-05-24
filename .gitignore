@@ -1,10 +1,14 @@
 # DATA
 _data_/
+tareas/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Ignore files
+*.csv
 
 # C extensions
 *.so

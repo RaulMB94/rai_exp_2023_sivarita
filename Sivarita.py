@@ -9,6 +9,8 @@ from numpy.linalg import norm
 import plotly.graph_objects as go
 import plotly.express as px
 
+import matplotlib.pyplot as plt   # plotting
+
 import scipy
 import sqlite3
 
@@ -20,10 +22,6 @@ import sqlite3
 
 def loadData(folder_selected):
 
-    file = open(folder_selected + "/Data_Joints.bin","rb")
-
-    pkg_size = (9) * 8 # doubles 8 bytes
-
     timeStamp = []
     repetition = []
     q1 = []
@@ -34,25 +32,31 @@ def loadData(folder_selected):
     q6 = []
     q7 = []
 
-    block = file.read(pkg_size)
+    if os.path.exists(folder_selected + "/Data_Joints.bin"):
 
-    while len(block) > 0:
-        (d1,d2,d3,d4,d5,d6,d7,rep,t) = struct.unpack("ddddddddd", block)
+        file = open(folder_selected + "/Data_Joints.bin","rb")
 
-        q1.append(math.degrees(d1))
-        q2.append(math.degrees(d2))
-        q3.append(math.degrees(d3))
-        q4.append(math.degrees(d4))
-        q5.append(math.degrees(d5))
-        q6.append(math.degrees(d6))
-        q7.append(math.degrees(d7))
-
-        timeStamp.append(t)
-        repetition.append(rep)
-
+        pkg_size = (9) * 8 # doubles 8 bytes
 
         block = file.read(pkg_size)
-    
+
+        while len(block) > 0:
+            (d1,d2,d3,d4,d5,d6,d7,rep,t) = struct.unpack("ddddddddd", block)
+
+            q1.append(math.degrees(d1))
+            q2.append(math.degrees(d2))
+            q3.append(math.degrees(d3))
+            q4.append(math.degrees(d4))
+            q5.append(math.degrees(d5))
+            q6.append(math.degrees(d6))
+            q7.append(math.degrees(d7))
+
+            timeStamp.append(t)
+            repetition.append(rep)
+
+
+            block = file.read(pkg_size)
+        
     data = { 
             'q1': q1, 'q2': q2, 'q3': q3, 'q4': q4, 'q5': q5, 'q6': q6, 'q7': q7, 'repetition': repetition, 'timeStamp': timeStamp
             }
@@ -186,27 +190,62 @@ def loadDataIA(folder_selected):
         block = file.read(pkg_size)
     
     data = {'tarea': tarea, 
-            'data_org_1': data_org_1, 'data_pred_1': data_pred_1, 'data_org_2': data_org_2, 'data_pred_2': data_pred_2, 'data_org_3': data_pred_3, 'data_org_4': data_org_4, 
-            'data_pred_4': data_pred_4, 'data_org_5': data_org_5, 'data_pred_5':data_pred_5, 'data_org_6': data_org_6, 'data_pred_6': data_pred_6, 'data_org_7': data_org_7,
-            'data_pred_7':data_pred_7
+            'data_org_1': data_org_1, 'data_pred_1': data_pred_1, 'data_org_2': data_org_2, 'data_pred_2': data_pred_2, 'data_org_3': data_org_3, 'data_pred_3': data_pred_3,
+            'data_org_4': data_org_4, 'data_pred_4': data_pred_4, 'data_org_5': data_org_5, 'data_pred_5': data_pred_5, 'data_org_6': data_org_6, 'data_pred_6': data_pred_6,
+            'data_org_7': data_org_7, 'data_pred_7':data_pred_7
             }
     
     df = pd.DataFrame(data)
 
-    return df 
+    return df
+
+def loadCSVdata():
+    df = pd.read_csv('datos_expertos.csv')
+    # print(df.info())
+    # # Head of de data
+    # print("\nHEAD:\n",df.head())
+    # # Basic statistics of the data:
+    # print("\nDESCRIBE:\n",df.describe())
+
+    # print("\nSAPE:\n",df.shape)
+    # ##check for any null/empty values
+    # print("\nEMPTY VALUES:\n",df.isnull().any().sum()) 
+
+    # # Plot the time series
+    # plt.style.use('fivethirtyeight')
+    # df.plot(subplots=True,
+    #         layout=(4, 3),
+    #         figsize=(22,22),
+    #         fontsize=10, 
+    #         linewidth=2,
+    #         sharex=False,
+    #         title='Visualization of the original Time Series')
+    # plt.show()
+
+    return df
 #############################################
 #
 #   Trials
 # 
 #############################################
 
-def find_indices(lst, condition):
-    return [i for i, elem in enumerate(lst) if condition(elem)]
+def find_indices(df):
+    return 
 
 def getTrials(df):
+# Encontrar los índices donde cambia el valor de actividad
+    indices_cambio = df.index[df['repetition'].diff() != 0]
 
+    # Calcular los intervalos de repeticiones
+    intervalos = []
+    for i in range(1, len(indices_cambio), 2):
+        if i < len(indices_cambio) - 1:
+            inicio_intervalo = indices_cambio[i]
+            fin_intervalo = indices_cambio[i + 1] - 1
+            intervalo = (inicio_intervalo, fin_intervalo)
+            intervalos.append(intervalo)
 
-    return 
+    return intervalos
 
 #############################################
 #
@@ -254,15 +293,35 @@ def getActivityType(id, modo):
 
 def maxAngle(df, column):
 
-    filas_max_angle = df.loc[df['repetition'] == 1]
-    valor_maximo = filas_max_angle[column].max()
+    # Encontrar los índices donde cambia el valor de actividad
+    intervalos = getTrials(df)
+
+    # Obtener los máximos de cada intervalo de repetición
+    max_anglesList = []
+    for inicio, fin in intervalos:        
+        max_anglesList.append(df[column][inicio:fin].max())
+    
+    #Obetener la media
+    valor_maximo = np.mean(max_anglesList)
+    # filas_max_angle = df.loc[df['repetition'] == 1]
+    # valor_maximo = filas_max_angle[column].max()
 
     return valor_maximo
 
 def minAngle(df, column):
 
-    filas_min_angle = df.loc[df['repetition'] == 1]
-    valor_minimo = filas_min_angle[column].min()
+    # Encontrar los índices donde cambia el valor de actividad
+    intervalos = getTrials(df)
+
+    #Obtener los mínimos de cada intervalo de repetición
+    min_anglesList = []
+    for inicio, fin in intervalos:        
+        min_anglesList.append(df[column][inicio:fin].min())
+
+    #Obetener la media
+    valor_minimo = np.mean(min_anglesList)
+    # filas_min_angle = df.loc[df['repetition'] == 1]
+    # valor_minimo = filas_min_angle[column].min()
 
     return valor_minimo
 
@@ -325,6 +384,16 @@ def computeVelocity(df):
     return 
 
 
+##functions for extracting sEMG features
+def rms(data): ##root mean square
+    return  np.sqrt(np.mean(data**2,axis=0))  
+
+def SSI(data): ##Simple Square Integral
+    return np.sum(data**2,axis=0)
+
+def abs_diffs_signal(data): ##absolute differential signal
+    return np.sum(np.abs(np.diff(data,axis=0)),axis=0)
+
 
 
 #############################################
@@ -332,6 +401,22 @@ def computeVelocity(df):
 #   PLOT Functions
 # 
 #############################################
-
+def plotDTWparam(df):
+    
+    if len(df) == 0:
+        return
+    else:
+        # Representar los datos como puntos utilizando Matplotlib
+        plt.scatter(df['data_org_1'], df['data_pred_1'])
+        plt.scatter(df['data_org_2'], df['data_pred_2'])
+        plt.scatter(df['data_org_3'], df['data_pred_3'])
+        plt.scatter(df['data_org_4'], df['data_pred_4'])
+        plt.scatter(df['data_org_5'], df['data_pred_5'])
+        plt.scatter(df['data_org_6'], df['data_pred_6'])
+        plt.scatter(df['data_org_7'], df['data_pred_7'])
+        plt.xlabel('Valores de org')
+        plt.ylabel('Valores de pred')
+        plt.title('Gráfico de DTW')
+        plt.show()
 
 

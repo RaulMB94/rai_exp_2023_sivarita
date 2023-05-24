@@ -15,13 +15,14 @@ from plotly.colors import n_colors
 import Sivarita
 
 
-def loadData(datapath):
+def loadData(datapath, user):
 
     #
     user_list = []
     sessions_list = []
     df_activity = []
     df_list = []
+    df_IA_list = []
     trials_list = []
     activity_list = []
     activity_type_list = []
@@ -37,10 +38,11 @@ def loadData(datapath):
         session_folders = next(os.walk(datapath + activity))[1]
         for ses in session_folders:
             path = datapath + activity + "/" + ses
-            user_list.append('Alberto_Villegas')
+            user_list.append(user)
             sessions_list.append(ses)
             activity_list.append(activity)
 
+            
             df = Sivarita.loadData(path)
             df_list.append(df)
 
@@ -48,9 +50,14 @@ def loadData(datapath):
             activity_type_list.append(df_2.modo[0])
             upper_size.append(df_2.upper_size[0])
             down_size.append(df_2.fore_size[0])
+            arm.append(chr(round(df_2.brazo[0])))
             num_rep.append(df_2.trials[0])
             df_activity.append(df_2)
             trials_list.append(df_trials)
+
+            df_IA = Sivarita.loadDataIA(path)
+            df_IA_list.append(df_IA)
+
 
 
     data = {
@@ -60,8 +67,10 @@ def loadData(datapath):
         'tipo_actividad': activity_type_list,
         'upper_size': upper_size,
         'fore_size': down_size,
+        'brazo': arm,
         'num_rep': num_rep,
-        'dataFrame': df_list
+        'dataFrame': df_list,
+        'dataFrameIA': df_IA_list
     }
 
     clear_output(wait=True)
@@ -111,6 +120,7 @@ def process_all_params(df_data):
     session_list = []
     activity_list = []
     activity_type_list = []
+    arm_list = []
 
     q1_trajectory = []
     q2_trajectory = []
@@ -143,6 +153,7 @@ def process_all_params(df_data):
         session_list.append(df_data.sesion[i_row])
         activity_list.append(df_data.actividad[i_row])
         activity_type_list.append(df_data.tipo_actividad[i_row])
+        arm_list.append(df_data.brazo[i_row])
 
         clear_output(wait=True)
         df = df_data.dataFrame[i_row]
@@ -168,7 +179,7 @@ def process_all_params(df_data):
 
     data = {
 
-        'session': session_list, 'activity': activity_list, 'tipo_actividad': activity_type_list,
+        'session': session_list, 'activity': activity_list, 'tipo_actividad': activity_type_list, 'brazo': arm_list,
         'MAX_Q1': max_q1, 'MAX_Q2': max_q2, 'MAX_Q3': max_q3, 'MAX_Q4': max_q4, 'MAX_Q5': max_q5, 'MAX_Q6': max_q6, 'MAX_Q7': max_q7,
         'MIN_Q1': min_q1, 'MIN_Q2': min_q2, 'MIN_Q3': min_q3, 'MIN_Q4': min_q4, 'MIN_Q5': min_q5, 'MIN_Q6': min_q6, 'MIN_Q7': min_q7
 
