@@ -32,7 +32,7 @@ def loadData(folder_selected):
     q6 = []
     q7 = []
 
-    if os.path.exists(folder_selected + "/Data_Joints.bin"):
+    if os.path.exists(folder_selected + "/Data_Joints.bin") and os.path.getsize(folder_selected + "/Data_Joints.bin") != 0:
 
         file = open(folder_selected + "/Data_Joints.bin","rb")
 
@@ -132,9 +132,6 @@ def loadDataActivity(folder):
     return (df, df_trials)
 
 def loadDataIA(folder_selected):
-    file = open(folder_selected + "/Data_IA.bin", "rb")
-
-    pkg_size = (15) * 8
 
     data_org_1 = []
     data_pred_1 = []
@@ -159,35 +156,43 @@ def loadDataIA(folder_selected):
 
     tarea = []
 
-    block = file.read(pkg_size)
+    if os.path.exists(folder_selected + "/Data_IA.bin") and os.path.getsize(folder_selected + "/Data_IA.bin") != 0:
 
-    while len(block) > 0:
-        (do1,dp1,do2,dp2,do3,dp3,do4,dp4,do5,dp5,do6,dp6,do7,dp7,t) = struct.unpack("ddddddddddddddd", block)
+        file = open(folder_selected + "/Data_IA.bin", "rb")
 
-        data_org_1.append(do1)
-        data_pred_1.append(dp1)
+        pkg_size = (15) * 8
 
-        data_org_2.append(do2)
-        data_pred_2.append(dp2)
 
-        data_org_3.append(do3)
-        data_pred_3.append(dp3)
-
-        data_org_4.append(do4)
-        data_pred_4.append(dp4)
-
-        data_org_5.append(do5)
-        data_pred_5.append(dp5)
-
-        data_org_6.append(do6)
-        data_pred_6.append(dp6)
-
-        data_org_7.append(do7)
-        data_pred_7.append(dp7)
-
-        tarea.append(t)
 
         block = file.read(pkg_size)
+
+        while len(block) > 0:
+            (do1,dp1,do2,dp2,do3,dp3,do4,dp4,do5,dp5,do6,dp6,do7,dp7,t) = struct.unpack("ddddddddddddddd", block)
+
+            data_org_1.append(do1)
+            data_pred_1.append(dp1)
+
+            data_org_2.append(do2)
+            data_pred_2.append(dp2)
+
+            data_org_3.append(do3)
+            data_pred_3.append(dp3)
+
+            data_org_4.append(do4)
+            data_pred_4.append(dp4)
+
+            data_org_5.append(do5)
+            data_pred_5.append(dp5)
+
+            data_org_6.append(do6)
+            data_pred_6.append(dp6)
+
+            data_org_7.append(do7)
+            data_pred_7.append(dp7)
+
+            tarea.append(int(t))
+
+            block = file.read(pkg_size)
     
     data = {'tarea': tarea, 
             'data_org_1': data_org_1, 'data_pred_1': data_pred_1, 'data_org_2': data_org_2, 'data_pred_2': data_pred_2, 'data_org_3': data_org_3, 'data_pred_3': data_pred_3,
@@ -285,6 +290,35 @@ def getActivityType(id, modo):
             actividad =  'NARIZ'  # Nariz
     return actividad
 
+def getActivityType2(id):
+    if(id == 1):
+        actividad = 'BEBER'
+    elif(id == 2):
+        actividad = 'LLENADO'
+    elif(id == 3):
+        actividad = 'BIMANUAL'
+    elif(id == 4):
+        actividad = 'DEPOSITAR'
+    elif(id == 5):
+        actividad = 'SORTEAR'
+    elif(id == 6):
+        actividad = 'DESPLAZAR'
+    elif(id == 7):
+        actividad = 'TRIÁNGULO'
+    elif(id == 8):
+        actividad = 'CUADRADO'
+    elif(id == 9):
+        actividad = 'CÍRCULO'
+    elif(id == 10):
+        actividad = 'HOMBRO'
+    elif(id == 11):
+        actividad = 'CABEZA'
+    elif(id == 12):
+        actividad = 'RODILLA'
+    elif(id == 13):
+        actividad = 'NARIZ'
+    
+    return actividad
 #############################################
 #
 #   Parameters
@@ -303,8 +337,6 @@ def maxAngle(df, column):
     
     #Obetener la media
     valor_maximo = np.mean(max_anglesList)
-    # filas_max_angle = df.loc[df['repetition'] == 1]
-    # valor_maximo = filas_max_angle[column].max()
 
     return valor_maximo
 
@@ -320,8 +352,6 @@ def minAngle(df, column):
 
     #Obetener la media
     valor_minimo = np.mean(min_anglesList)
-    # filas_min_angle = df.loc[df['repetition'] == 1]
-    # valor_minimo = filas_min_angle[column].min()
 
     return valor_minimo
 
@@ -401,22 +431,37 @@ def abs_diffs_signal(data): ##absolute differential signal
 #   PLOT Functions
 # 
 #############################################
-def plotDTWparam(df):
+def plotDTWparam(df, tarea):
+
+    correctly_clasf = []
+    miss_clasf = []
     
     if len(df) == 0:
         return
     else:
-        # Representar los datos como puntos utilizando Matplotlib
-        plt.scatter(df['data_org_1'], df['data_pred_1'])
-        plt.scatter(df['data_org_2'], df['data_pred_2'])
-        plt.scatter(df['data_org_3'], df['data_pred_3'])
-        plt.scatter(df['data_org_4'], df['data_pred_4'])
-        plt.scatter(df['data_org_5'], df['data_pred_5'])
-        plt.scatter(df['data_org_6'], df['data_pred_6'])
-        plt.scatter(df['data_org_7'], df['data_pred_7'])
-        plt.xlabel('Valores de org')
-        plt.ylabel('Valores de pred')
-        plt.title('Gráfico de DTW')
+        for row in range(df.shape[0]):
+            # Calcular las medias de todas las joints
+            sum_org = df['data_org_1'][row] + df['data_org_2'][row] + df['data_org_3'][row] + df['data_org_4'][row] + df['data_org_5'][row] + df['data_org_6'][row] + df['data_org_7'][row]
+            sum_pred = df['data_pred_1'][row] + df['data_pred_2'][row] + df['data_pred_3'][row] + df['data_pred_4'][row] + df['data_pred_5'][row] + df['data_pred_6'][row] + df['data_pred_7'][row]
+            mean_org = sum_org / 7
+            mean_pred = sum_pred / 7
+            
+            # Representar los datos como puntos utilizando Matplotlib      
+            if(getActivityType2(df['tarea'][row]) == tarea):
+                correctly_clasf.append([mean_org, mean_pred])# good clasificated
+            else:
+                miss_clasf.append([mean_org, mean_pred])                # missclasificated
+
+        # Trasponer de lista a array y obtener los valores x e y para la gráfica
+        x_correct, y_correct = np.array(correctly_clasf).T
+        x_miss, y_miss = np.array(miss_clasf).T
+
+        plt.scatter(x_correct, y_correct, label= 'Gesture Correctly Classified', marker='o')
+        plt.scatter(x_miss, y_miss, label='Missclassified Gesture', marker='x')
+        plt.xlabel('DTW distance to True Gesture')
+        plt.ylabel('DTW distance to Predicted Gesture')
+        plt.title('Gráfico de DTW para {0}'.format(tarea))
+        plt.legend()
         plt.show()
 
 
