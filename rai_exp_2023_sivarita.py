@@ -19,6 +19,7 @@ def loadData(datapath):
 
     #
     user_list = []
+    user_id_list = []
     sessions_list = []
     df_activity = []
     df_list = []
@@ -37,14 +38,21 @@ def loadData(datapath):
         for activity in activity_folders:
             session_folders = next(os.walk(datapath + user + "/" + activity))[1]
             for ses in session_folders:
+
+                #Añadir el nuevo path  de la sesion
                 path = datapath + user + "/" + activity + "/" + ses
+
+                #Añadir los datos extras
                 user_list.append(user)
+                #user_id_list.append(df_excel.loc[df_excel['nombre'] == user, "id"].values[0])
                 sessions_list.append(ses)
                 activity_list.append(activity)
 
+                # Cargar los DataJoints.bin
                 df = Sivarita.loadData(path)
                 df_list.append(df)
 
+                # Cargar los Data_Activity.bin
                 df_2, df_trials = Sivarita.loadDataActivity(path)
                 activity_type_list.append(df_2.modo[0])
                 upper_size.append(df_2.upper_size[0])
@@ -54,6 +62,7 @@ def loadData(datapath):
                 df_activity.append(df_2)
                 trials_list.append(df_trials)
 
+                # Cargar los Data_IA.bin
                 df_IA = Sivarita.loadDataIA(path)
                 df_IA_list.append(df_IA)
 
@@ -122,14 +131,6 @@ def process_all_params(df_data):
     activity_type_list = []
     arm_list = []
 
-    q1_trajectory = []
-    q2_trajectory = []
-    q3_trajectory = []
-    q4_trajectory = []
-    q5_trajectory = []
-    q6_trajectory = []
-    q7_trajectory = []
-
     max_q1 = []
     max_q2 = []
     max_q3 = []
@@ -146,7 +147,9 @@ def process_all_params(df_data):
     min_q6 = []
     min_q7 = []
 
-    
+    dtw_err_list = []
+    dtw_porc_err_list = []
+
 
     for i_row in range(df_data.shape[0]):
 
@@ -178,9 +181,18 @@ def process_all_params(df_data):
         min_q7.append(Sivarita.minAngle(df,'q7'))
         #q1_trajectory.append()
 
+        #DTW
+        df_dtw = df_data.dataFrameIA[i_row]
+        tarea = df_data.tipo_actividad[i_row]
+        dtw_error, porc_error = Sivarita.computeDTW(df_dtw, tarea)
+        dtw_err_list.append(dtw_error)
+        dtw_porc_err_list.append(porc_error)
+
+
     data = {
 
         'usuario': user_list, 'session': session_list, 'activity': activity_list, 'tipo_actividad': activity_type_list, 'brazo': arm_list,
+        'DTW_error': dtw_err_list, 'Porcentaje_pred': dtw_porc_err_list,
         'MAX_Q1': max_q1, 'MAX_Q2': max_q2, 'MAX_Q3': max_q3, 'MAX_Q4': max_q4, 'MAX_Q5': max_q5, 'MAX_Q6': max_q6, 'MAX_Q7': max_q7,
         'MIN_Q1': min_q1, 'MIN_Q2': min_q2, 'MIN_Q3': min_q3, 'MIN_Q4': min_q4, 'MIN_Q5': min_q5, 'MIN_Q6': min_q6, 'MIN_Q7': min_q7
 

@@ -414,6 +414,32 @@ def computeVelocity(df):
     return 
 
 
+def computeDTW(df, tarea):
+
+    correctly_clasf = []
+    miss_clasf = []
+    porcentaje_pred_list = []
+
+    for row in range(df.shape[0]):
+        # Calcular las medias de todas las joints
+        sum_org = df['data_org_1'][row] + df['data_org_2'][row] + df['data_org_3'][row] + df['data_org_4'][row] + df['data_org_5'][row] + df['data_org_6'][row] + df['data_org_7'][row]
+        sum_pred = df['data_pred_1'][row] + df['data_pred_2'][row] + df['data_pred_3'][row] + df['data_pred_4'][row] + df['data_pred_5'][row] + df['data_pred_6'][row] + df['data_pred_7'][row]
+        mean_org = sum_org / 7
+        mean_pred = sum_pred / 7
+        
+        # Representar los datos como puntos utilizando Matplotlib      
+        if(getActivityType2(df['tarea'][row]) == tarea):
+            correctly_clasf.append([mean_org, mean_pred])# good clasificated
+        else:
+            miss_clasf.append([mean_org, mean_pred])
+
+        porcentaje_pred = len(correctly_clasf) / (len(correctly_clasf) + len(miss_clasf)) * 100
+        porcentaje_pred_list.append(porcentaje_pred)
+
+    porcentaje_pred_mean = np.mean(porcentaje_pred_list)
+
+    return (mean_pred, porcentaje_pred_mean)
+
 ##functions for extracting sEMG features
 def rms(data): ##root mean square
     return  np.sqrt(np.mean(data**2,axis=0))  
