@@ -461,6 +461,8 @@ def plotDTWparam(df, tarea):
 
     correctly_clasf = []
     miss_clasf = []
+
+    max_list = []
     
     if len(df) == 0:
         return
@@ -472,6 +474,9 @@ def plotDTWparam(df, tarea):
             mean_org = sum_org / 7
             mean_pred = sum_pred / 7
             
+            max_list.append(mean_org)
+            max_list.append(mean_pred)
+
             # Representar los datos como puntos utilizando Matplotlib      
             if(getActivityType2(df['tarea'][row]) == tarea):
                 correctly_clasf.append([mean_org, mean_pred])# good clasificated
@@ -479,11 +484,20 @@ def plotDTWparam(df, tarea):
                 miss_clasf.append([mean_org, mean_pred])                # missclasificated
 
         # Trasponer de lista a array y obtener los valores x e y para la gráfica
-        x_correct, y_correct = np.array(correctly_clasf).T
-        x_miss, y_miss = np.array(miss_clasf).T
+        # Plot de los datos
+        if len(correctly_clasf) != 0:
+            x_correct, y_correct = np.array(correctly_clasf).T
+            plt.scatter(x_correct, y_correct, label= 'Gesture Correctly Classified', marker='o')
+            
+        if len(miss_clasf) != 0:
+            x_miss, y_miss = np.array(miss_clasf).T
+            plt.scatter(x_miss, y_miss, label='Missclassified Gesture', marker='x')
 
-        plt.scatter(x_correct, y_correct, label= 'Gesture Correctly Classified', marker='o')
-        plt.scatter(x_miss, y_miss, label='Missclassified Gesture', marker='x')
+        # Ajustes para la gráfica
+        max_size = np.max(max_list) + 2
+        plt.plot([0, max_size], [0, max_size], ls="--", c=".3")
+        plt.xlim([0,max_size])
+        plt.ylim([0,max_size])
         plt.xlabel('DTW distance to True Gesture')
         plt.ylabel('DTW distance to Predicted Gesture')
         plt.title('Gráfico de DTW para {0}'.format(tarea))
