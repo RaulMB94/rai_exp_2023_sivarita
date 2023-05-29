@@ -413,7 +413,6 @@ def computeVelocity(df):
     # return velocity_mean_trials, velocity_rms_trials, velocity_max_trials
     return 
 
-
 def computeDTW(df, tarea):
 
     correctly_clasf = []
