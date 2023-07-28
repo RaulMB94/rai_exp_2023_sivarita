@@ -87,7 +87,7 @@ def loadData(datapath):
 
     return df
 
-def downloadDataFromTeams(path_folder): #\2022_rubidium_longitudinal\_data_
+def downloadDataFromTeams(path_folder): #\2023_sivarita\_data_
 # Descargar datos de la carpeta "path" de teams.
 # [IMPORTANTE] Es necesario tener sincronizado el canal Experimentaciones de Teams con el ordenador.
 
@@ -108,7 +108,7 @@ def downloadDataFromTeams(path_folder): #\2022_rubidium_longitudinal\_data_
             src = src + p + '/'
         teams = "/UMH/RAI - Experimentaciones"
         src = src + teams + path_folder
-        # src = r"C:\Users\%s\UMH\RAI - Experimentaciones\2023_evaluacion_eeg-emg\EMG\_data_" % os.getlogin()
+        # src = r"C:\Users\%s\UMH\RAI - Experimentaciones\2023_sivarita\_data_" % os.getlogin()
         
         dst = "_data_"
 
@@ -252,7 +252,10 @@ def process_byGroups(df_main, df_params, group):
         mean_MINQ6.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MIN_Q6.to_numpy()))
         mean_MINQ7.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MIN_Q7.to_numpy()))
 
+        # Mean DTW error
         mean_dtw_error.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].DTW_error.to_numpy()))
+
+        # Porc. pred
         mean_porc_pred.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].Porcentaje_pred.to_numpy()))
             
 
