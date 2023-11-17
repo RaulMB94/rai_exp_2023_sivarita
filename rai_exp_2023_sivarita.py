@@ -87,7 +87,7 @@ def loadData(datapath):
 
     return df
 
-def downloadDataFromTeams(path_folder): #\2023_sivarita\_data_
+def downloadDataFromTeams(path_folder): #\Resultados\_data_
 # Descargar datos de la carpeta "path" de teams.
 # [IMPORTANTE] Es necesario tener sincronizado el canal Experimentaciones de Teams con el ordenador.
 
@@ -106,7 +106,7 @@ def downloadDataFromTeams(path_folder): #\2023_sivarita\_data_
         src = ''
         for p in path[0:-2]:
             src = src + p + '/'
-        teams = "/UMH/RAI - Experimentaciones"
+        teams = "/UMH/RAI - SIVARITA"
         src = src + teams + path_folder
         # src = r"C:\Users\%s\UMH\RAI - Experimentaciones\2023_sivarita\_data_" % os.getlogin()
         
@@ -148,7 +148,9 @@ def process_all_params(df_data):
     min_q7 = []
 
     dtw_err_list = []
+    dtw_org_err_list = []
     dtw_porc_err_list = []
+
 
 
     for i_row in range(df_data.shape[0]):
@@ -181,10 +183,12 @@ def process_all_params(df_data):
         min_q7.append(Sivarita.minAngle(df,'q7'))
         #q1_trajectory.append()
 
+
         #DTW
         df_dtw = df_data.dataFrameIA[i_row]
         tarea = df_data.tipo_actividad[i_row]
-        dtw_error, porc_error = Sivarita.computeDTW(df_dtw, tarea)
+        dtw_org_error,dtw_error, porc_error = Sivarita.computeDTW(df_dtw, tarea)
+        dtw_org_err_list.append(dtw_org_error)
         dtw_err_list.append(dtw_error)
         dtw_porc_err_list.append(porc_error)
 
@@ -192,7 +196,7 @@ def process_all_params(df_data):
     data = {
 
         'usuario': user_list, 'session': session_list, 'activity': activity_list, 'tipo_actividad': activity_type_list, 'brazo': arm_list,
-        'DTW_error': dtw_err_list, 'Porcentaje_pred': dtw_porc_err_list,
+        'DTW_org_error': dtw_org_err_list,'DTW_error': dtw_err_list, 'Porcentaje_pred': dtw_porc_err_list,
         'MAX_Q1': max_q1, 'MAX_Q2': max_q2, 'MAX_Q3': max_q3, 'MAX_Q4': max_q4, 'MAX_Q5': max_q5, 'MAX_Q6': max_q6, 'MAX_Q7': max_q7,
         'MIN_Q1': min_q1, 'MIN_Q2': min_q2, 'MIN_Q3': min_q3, 'MIN_Q4': min_q4, 'MIN_Q5': min_q5, 'MIN_Q6': min_q6, 'MIN_Q7': min_q7
 
@@ -202,6 +206,8 @@ def process_all_params(df_data):
 
     return df
 
+def filter_byActivities():
+    return
 
 def process_byGroups(df_main, df_params, group):
     #hawer = df_main.nombre.unique()
@@ -225,38 +231,41 @@ def process_byGroups(df_main, df_params, group):
     mean_MINQ7 = []
 
     mean_dtw_error = []
+    mean_dtw_org_error = []
     mean_porc_pred = []
+
 
     for user in nombres:
         # Filtrar brazo
-        brazo = df_main[df_main.nombre == user].brazo.to_list()[0]
-        
-        # User
-        user_list.append(user)
+        #brazo = df_main[df_main.nombre == user].brazo.to_list()[0]
+        if user in df_params['usuario'].values:
+            # User
+            user_list.append(user)
 
-        # Mean MAX Q
-        mean_MAXQ1.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MAX_Q1.to_numpy()))
-        mean_MAXQ2.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MAX_Q2.to_numpy()))
-        mean_MAXQ3.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MAX_Q3.to_numpy()))
-        mean_MAXQ4.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MAX_Q4.to_numpy()))
-        mean_MAXQ5.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MAX_Q5.to_numpy()))
-        mean_MAXQ6.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MAX_Q6.to_numpy()))
-        mean_MAXQ7.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MAX_Q7.to_numpy()))
+            # Mean MAX Q
+            mean_MAXQ1.append(np.nanmean(df_params[(df_params.usuario==user)].MAX_Q1.to_numpy()))
+            mean_MAXQ2.append(np.nanmean(df_params[(df_params.usuario==user)].MAX_Q2.to_numpy()))
+            mean_MAXQ3.append(np.nanmean(df_params[(df_params.usuario==user)].MAX_Q3.to_numpy()))
+            mean_MAXQ4.append(np.nanmean(df_params[(df_params.usuario==user)].MAX_Q4.to_numpy()))
+            mean_MAXQ5.append(np.nanmean(df_params[(df_params.usuario==user)].MAX_Q5.to_numpy()))
+            mean_MAXQ6.append(np.nanmean(df_params[(df_params.usuario==user)].MAX_Q6.to_numpy()))
+            mean_MAXQ7.append(np.nanmean(df_params[(df_params.usuario==user)].MAX_Q7.to_numpy()))
 
-        # Mean MIN Q
-        mean_MINQ1.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MIN_Q1.to_numpy()))
-        mean_MINQ2.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MIN_Q2.to_numpy()))
-        mean_MINQ3.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MIN_Q3.to_numpy()))
-        mean_MINQ4.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MIN_Q4.to_numpy()))
-        mean_MINQ5.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MIN_Q5.to_numpy()))
-        mean_MINQ6.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MIN_Q6.to_numpy()))
-        mean_MINQ7.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].MIN_Q7.to_numpy()))
+            # Mean MIN Q
+            mean_MINQ1.append(np.nanmean(df_params[(df_params.usuario==user)].MIN_Q1.to_numpy()))
+            mean_MINQ2.append(np.nanmean(df_params[(df_params.usuario==user)].MIN_Q2.to_numpy()))
+            mean_MINQ3.append(np.nanmean(df_params[(df_params.usuario==user)].MIN_Q3.to_numpy()))
+            mean_MINQ4.append(np.nanmean(df_params[(df_params.usuario==user)].MIN_Q4.to_numpy()))
+            mean_MINQ5.append(np.nanmean(df_params[(df_params.usuario==user)].MIN_Q5.to_numpy()))
+            mean_MINQ6.append(np.nanmean(df_params[(df_params.usuario==user)].MIN_Q6.to_numpy()))
+            mean_MINQ7.append(np.nanmean(df_params[(df_params.usuario==user)].MIN_Q7.to_numpy()))
 
-        # Mean DTW error
-        mean_dtw_error.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].DTW_error.to_numpy()))
+            # Mean DTW error
+            mean_dtw_error.append(np.nanmean(df_params[(df_params.usuario==user)].DTW_error.to_numpy()))
+            mean_dtw_org_error.append(np.nanmean(df_params[(df_params.usuario==user)].DTW_org_error.to_numpy()))
 
-        # Porc. pred
-        mean_porc_pred.append(np.nanmean(df_params[(df_params.usuario==user) & (df_params.brazo == brazo)].Porcentaje_pred.to_numpy()))
+            # Porc. pred
+            mean_porc_pred.append(np.nanmean(df_params[(df_params.usuario==user)].Porcentaje_pred.to_numpy()))
             
 
     data = {
@@ -267,10 +276,63 @@ def process_byGroups(df_main, df_params, group):
         'mean_MINQ1': mean_MINQ1, 'mean_MINQ2': mean_MINQ2, 'mean_MINQ3': mean_MINQ3, 'mean_MINQ4': mean_MINQ4, 'mean_MINQ5': mean_MINQ5,
         'mean_MINQ6': mean_MINQ6, 'mean_MINQ7': mean_MINQ7,
 
-        'mean_dtw_error': mean_dtw_error, 'mean_porc_pred': mean_porc_pred
+        'mean_dtw_org_error':mean_dtw_org_error, 'mean_dtw_error': mean_dtw_error, 'mean_porc_pred': mean_porc_pred
     }
 
     df_mean = pd.DataFrame(data)
 
     return df_mean
+
+def process_byGroup_ROM(df_main, df_params, group):
+
+    nombres = df_main[df_main.grupo == group].nombre.to_list()
+
+    user_list = []
+
+    rom_q1 = []
+    rom_q2 = []
+    rom_q3 = []
+    rom_q4 = []
+    rom_q5 = []
+    rom_q6 = []
+    rom_q7 = []
+
+    mean_dtw_error = []
+    mean_dtw_org_error = []
+    mean_porc_pred = []
+
+
+    for user in nombres:
+        if user in df_params['usuario'].values:
+            # User
+            user_list.append(user)
+
+            #ROM
+            rom_q1.append(df_params[(df_params.usuario==user)].MAX_Q1.max() - df_params[(df_params.usuario==user)].MIN_Q1.min())
+            rom_q2.append(df_params[(df_params.usuario==user)].MAX_Q2.max() - df_params[(df_params.usuario==user)].MIN_Q2.min())
+            rom_q3.append(df_params[(df_params.usuario==user)].MAX_Q3.max() - df_params[(df_params.usuario==user)].MIN_Q3.min())
+            rom_q4.append(df_params[(df_params.usuario==user)].MAX_Q4.max() - df_params[(df_params.usuario==user)].MIN_Q4.min())
+            rom_q5.append(df_params[(df_params.usuario==user)].MAX_Q5.max() - df_params[(df_params.usuario==user)].MIN_Q5.min())
+            rom_q6.append(df_params[(df_params.usuario==user)].MAX_Q6.max() - df_params[(df_params.usuario==user)].MIN_Q6.min())
+            rom_q7.append(df_params[(df_params.usuario==user)].MAX_Q7.max() - df_params[(df_params.usuario==user)].MIN_Q7.min())
+
+            # Mean DTW error
+            mean_dtw_error.append(np.nanmean(df_params[(df_params.usuario==user)].DTW_error.to_numpy()))
+            mean_dtw_org_error.append(np.nanmean(df_params[(df_params.usuario==user)].DTW_org_error.to_numpy()))
+
+            # Porc. pred
+            mean_porc_pred.append(np.nanmean(df_params[(df_params.usuario==user)].Porcentaje_pred.to_numpy()))
+            
+
+    data = {
+        'user': user_list,
+        'ROM_Q1': rom_q1, 'ROM_Q2': rom_q2, 'ROM_Q3': rom_q3, 'ROM_Q4': rom_q4, 'ROM_Q5': rom_q5,
+        'ROM_Q6': rom_q6, 'ROM_Q7': rom_q7,
+
+        'mean_dtw_org_error':mean_dtw_org_error, 'mean_dtw_error': mean_dtw_error, 'mean_porc_pred': mean_porc_pred
+    }
+
+    df_mean = pd.DataFrame(data)
+
+    return df_mean 
 
