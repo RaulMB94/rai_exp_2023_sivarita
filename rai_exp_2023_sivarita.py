@@ -336,3 +336,36 @@ def process_byGroup_ROM(df_main, df_params, group):
 
     return df_mean 
 
+def filter_per_Activities(df):
+
+    activity_list = ['MoveGlass', 'Move_Cube', 'PaintForms', 'TouchGame']
+    nombres = df.usuario.unique()
+    death_note = []
+    
+    for act in activity_list:
+        # Filtrar el DataFrame para la actividad actual
+        df_filtrado = df[df['activity'] == act]
+
+        # Contar las ocurrencias de la actividad actual para cada usuario
+        conteo_actividad = df_filtrado.groupby('usuario').size().reset_index(name='Conteo')
+
+        for user in nombres:
+
+            esta_presente = (conteo_actividad['usuario'] == user).any()
+            #Comprobar si está el usuario
+            if not esta_presente:
+                # Añadir a la Death Note
+                death_note.append(user)
+    
+    #Eliminar duplicados
+    death_note = list(set(death_note))
+    for name in death_note:
+        # Seleccionar las filas que cumplen con la condición
+        filas_a_eliminar = df.loc[df['usuario'] == name]
+        # Eliminar las filas seleccionadas
+        df = df.drop(filas_a_eliminar.index)
+    
+    return df
+
+
+

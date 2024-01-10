@@ -332,13 +332,16 @@ def maxAngle(df, column):
     # Encontrar los índices donde cambia el valor de actividad
     intervalos = getTrials(df)
 
+    #Obtener el Offset
+    offSet = df[column][0]
+
     # Obtener los máximos de cada intervalo de repetición
     max_anglesList = []
     for inicio, fin in intervalos:        
         max_anglesList.append(df[column][inicio:fin].max())
     
     #Obetener la media
-    valor_maximo = np.mean(max_anglesList)
+    valor_maximo = np.mean(max_anglesList) - offSet
 
     return valor_maximo
 
@@ -347,13 +350,17 @@ def minAngle(df, column):
     # Encontrar los índices donde cambia el valor de actividad
     intervalos = getTrials(df)
 
+    #Obtener el Offset
+    offSet = df[column][0]
+
+
     #Obtener los mínimos de cada intervalo de repetición
     min_anglesList = []
     for inicio, fin in intervalos:        
         min_anglesList.append(df[column][inicio:fin].min())
 
     #Obetener la media
-    valor_minimo = np.mean(min_anglesList)
+    valor_minimo = np.mean(min_anglesList) - offSet
 
     return valor_minimo
 
